@@ -46,7 +46,22 @@ class DBWindow(QMainWindow):
         self.cur = self.con.cursor()
         
         # load the tables
+        self.tablenames = []
         self.loadTables()
+        
+        # create the autocompleter for tables
+        self.tablecompleter = QCompleter(self.tablenames)
+        self.tablesFilterEdit.setCompleter(self.tablecompleter)
+        self.tablesFilterEdit.textChanged.connect(self.refreshTableView)
+        
+    def refreshTableView(self, text):
+        print('hit the slot, text is now ' + text)
+
+        self.tablesList.clear()
+        for name in self.tablenames:
+            if text in name:
+                QListWidgetItem(name, self.tablesList)
+        
         
     def closeEvent(self, event):
         # remember to close the db
@@ -60,33 +75,56 @@ class DBWindow(QMainWindow):
         rows = self.cur.fetchall()
         for row in rows:
             QListWidgetItem(row[0], self.tablesList)
+            self.tablenames.append(row[0])
         
 
     def createTitles(self):
+        self.boldFont = QFont()
+        self.boldFont.setBold(True)
+        
         self.title_hbox = QHBoxLayout()
         self.tablesLabel = QLabel("Tables")
+        self.tablesLabel.setFont(self.boldFont)
         self.tablesLabel.setAlignment(Qt.AlignCenter)
         self.filesLabel = QLabel("Files")
+        self.filesLabel.setFont(self.boldFont)
         self.filesLabel.setAlignment(Qt.AlignCenter)
         self.contentsLabel = QLabel("Contents")
+        self.contentsLabel.setFont(self.boldFont)
         self.contentsLabel.setAlignment(Qt.AlignCenter)
         self.title_hbox.addWidget(self.tablesLabel)
         self.title_hbox.addWidget(self.filesLabel)
         self.title_hbox.addWidget(self.contentsLabel)
         
-        return self.title_hbox
+#        return self.title_hbox
         
     def createViewBoxes(self):
         # create the viewboxes
         self.viewer_hbox = QHBoxLayout()
+        
+        self.tables_vbox = QVBoxLayout()
+        
+        self.tables_filters_hbox = QHBoxLayout()
+        self.tablesFilterLabel = QLabel("Filter Tables:")
+        self.tablesFilterEdit = QLineEdit()
+        self.tables_filters_hbox.addWidget(self.tablesFilterLabel)
+        self.tables_filters_hbox.addWidget(self.tablesFilterEdit) # add the label and lineEdit in a row
+        self.tables_vbox.addLayout(self.tables_filters_hbox)
+        
         self.tablesList = TablesListWidget(self)
+        self.tables_vbox.addWidget(self.tablesList)
+        
         self.filesList = FilesListWidget(self)
+        
+        
         self.contentsbrowser = ContentsBrowserWidget(self)
-        self.viewer_hbox.addWidget(self.tablesList)
+        
+        
+        self.viewer_hbox.addLayout(self.tables_vbox)
         self.viewer_hbox.addWidget(self.filesList)
         self.viewer_hbox.addWidget(self.contentsbrowser)
         
-        return self.viewer_hbox
+#        return self.viewer_hbox
         
         
         
@@ -109,8 +147,10 @@ class TablesListWidget(QListWidget):
         self.callingWidget.cur.execute("select filename from \"" + item.text() + "\"") # screw injections
 #        self.callingWidget.cur = self.callingWidget.con.execute("select filename from \"?\"", (item.text(),)) # fails, table names cannot be parameterized..
         rows = self.callingWidget.cur.fetchall()
+        self.callingWidget.filenames = [] # first clear the filenames
         for row in rows:
             QListWidgetItem(row[0], self.callingWidget.filesList)
+            self.callingWidget.filenames.append(row[0]) # append them
             
         self.callingWidget.selectedTable = item.text()
         
@@ -138,3 +178,10 @@ class ContentsBrowserWidget(QTextEdit):
         super(ContentsBrowserWidget, self).__init__()
         self.callingWidget = callingWidget
         self.setReadOnly(True)
+        
+class TablesFilterEdit(QLineEdit):
+    def __init__(self, callingWidget):
+        super(ContentsBrowserWidget, self).__init__()
+        self.callingWidget = callingWidget
+        
+    
