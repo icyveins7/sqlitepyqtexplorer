@@ -10,6 +10,7 @@ import sqlite3 as sq
 from mypyqtimports import *
 from fileopenwidget import FileOpenWidget
 from dbwindow import DBWindow
+import os
 
 # main code
 class MainWindow(QMainWindow):
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle("Database Viewer")
+        self.setGeometry(100, 100, 500, 100)
 
         # setup the central widget (necessary for QMainWindow)
         self.centralWidget = QWidget(self)
@@ -50,11 +52,25 @@ class MainWindow(QMainWindow):
         self.dbpathEdit.setText(text)
         
     def on_opendbBtn_clicked(self):
-        newWindow = DBWindow(self,self.dbpathEdit.text())
-        self.openWindows.append(newWindow)
-        newWindow.show()
-        print('Now tracking new window:')
-        print(str(self.openWindows))
+        # check that file exists and is .db (or .DB or .dB etc.)
+        if os.path.exists(self.dbpathEdit.text()) and os.path.splitext(self.dbpathEdit.text())[1].lower()=='.db':      
+            newWindow = DBWindow(self,self.dbpathEdit.text())
+            self.openWindows.append(newWindow)
+            newWindow.show()
+            print('Now tracking new window:')
+            print(str(self.openWindows))
+        else:
+            print('DB file not found')
+            self.msg = QMessageBox()
+            self.msg.setIcon(QMessageBox.Critical)
+            
+            self.msg.setText("Database does not exist.")
+            self.msg.setInformativeText("Please check if the filepath is correct and is a valid database.")
+            self.msg.setWindowTitle("Something went wrong.")
+#            msg.setDetailedText("The details are as follows:")
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            
+            self.msg.show()
         
     def dbclosed(self, path2db, closedWidget):
         print('received event from viewer for ' + path2db)
