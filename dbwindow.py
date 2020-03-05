@@ -30,12 +30,16 @@ class DBWindow(QMainWindow):
         
         # create the viewboxes
         self.createViewBoxes()
+        
+        # create the export functions
+        self.createExports()
       
         # create the main layout and add all the other sublayouts
         self.mainlayout = QVBoxLayout()
         # note that these layouts are implicitly created in the methods
         self.mainlayout.addLayout(self.title_hbox)
         self.mainlayout.addLayout(self.viewer_hbox)
+        self.mainlayout.addLayout(self.export_hbox)
 
         
         # attach layout to central widget
@@ -91,6 +95,17 @@ class DBWindow(QMainWindow):
             QListWidgetItem(row[0], self.tablesList)
             self.tablenames.append(row[0])
         
+
+    def createExports(self):
+        self.export_hbox = QHBoxLayout()
+        
+        self.exportDirEdit = QLineEdit()
+        self.exportDirBtn = QPushButton("...")
+        self.exportBtn = QPushButton("Export Selection")
+        
+        self.export_hbox.addWidget(self.exportDirEdit)
+        self.export_hbox.addWidget(self.exportDirBtn)
+        self.export_hbox.addWidget(self.exportBtn)
 
     def createTitles(self):
         self.boldFont = QFont()
