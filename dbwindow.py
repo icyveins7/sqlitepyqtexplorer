@@ -54,6 +54,20 @@ class DBWindow(QMainWindow):
         self.tablesFilterEdit.setCompleter(self.tablecompleter)
         self.tablesFilterEdit.textChanged.connect(self.refreshTableView)
         
+        # create the autocompleter for files
+        self.filenames = []
+        self.filecompleter = QCompleter(self.filenames)
+        self.filesFilterEdit.setCompleter(self.filecompleter)
+        self.filesFilterEdit.textChanged.connect(self.refreshFilesView)
+        
+    def refreshFilesView(self, text):
+        print('hit the files slot, text is now ' + text)
+        
+        self.filesList.clear()
+        for name in self.filenames:
+            if text in name:
+                QListWidgetItem(name, self.filesList)
+        
     def refreshTableView(self, text):
         print('hit the slot, text is now ' + text)
 
@@ -102,6 +116,7 @@ class DBWindow(QMainWindow):
         # create the viewboxes
         self.viewer_hbox = QHBoxLayout()
         
+        # tables
         self.tables_vbox = QVBoxLayout()
         
         self.tables_filters_hbox = QHBoxLayout()
@@ -114,14 +129,25 @@ class DBWindow(QMainWindow):
         self.tablesList = TablesListWidget(self)
         self.tables_vbox.addWidget(self.tablesList)
         
+        # files
+        self.files_vbox = QVBoxLayout()
+        
+        self.files_filters_hbox = QHBoxLayout()
+        self.filesFilterLabel = QLabel("Filter Files:")
+        self.filesFilterEdit = QLineEdit()
+        self.files_filters_hbox.addWidget(self.filesFilterLabel)
+        self.files_filters_hbox.addWidget(self.filesFilterEdit)
+        self.files_vbox.addLayout(self.files_filters_hbox)
+        
         self.filesList = FilesListWidget(self)
+        self.files_vbox.addWidget(self.filesList)
         
         
         self.contentsbrowser = ContentsBrowserWidget(self)
         
         
         self.viewer_hbox.addLayout(self.tables_vbox)
-        self.viewer_hbox.addWidget(self.filesList)
+        self.viewer_hbox.addLayout(self.files_vbox)
         self.viewer_hbox.addWidget(self.contentsbrowser)
         
 #        return self.viewer_hbox
@@ -153,6 +179,9 @@ class TablesListWidget(QListWidget):
             self.callingWidget.filenames.append(row[0]) # append them
             
         self.callingWidget.selectedTable = item.text()
+        
+        # to maintain user consistency, clear the text from files filter
+        self.callingWidget.filesFilterEdit.clear()
         
         
 class FilesListWidget(QListWidget):
