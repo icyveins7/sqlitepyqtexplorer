@@ -29,6 +29,7 @@ class MainWindow(QMainWindow):
         self.dirBtn = QPushButton('...')
         self.dbpathEdit = QLineEdit()
         self.changeDbPathEditText('Enter dbpath here')
+        self.dbpathEdit.returnPressed.connect(self.on_opendbBtn_clicked) # connect the enter pushed to the same effect as button
         
         self.fileopenwid = FileOpenWidget(self) # pass the window to the dialog
         self.dirBtn.clicked.connect(self.fileopenwid.openFileNameDialog) # connect the button to the dialog (to open it)
