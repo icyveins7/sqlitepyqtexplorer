@@ -64,6 +64,9 @@ class DBWindow(QMainWindow):
         self.filesFilterEdit.setCompleter(self.filecompleter)
         self.filesFilterEdit.textChanged.connect(self.refreshFilesView)
         
+        # no autocomplete for text search, but connect to highlighter
+        self.contentsFilterEdit.textChanged.connect(self.contentsbrowser.highlightPattern)
+        
     def refreshFilesView(self, text):
         print('hit the files slot, text is now ' + text)
         
@@ -157,13 +160,23 @@ class DBWindow(QMainWindow):
         self.filesList = FilesListWidget(self)
         self.files_vbox.addWidget(self.filesList)
         
+        # contents
+        self.contents_vbox = QVBoxLayout()
+        
+        self.contents_filters_hbox = QHBoxLayout()
+        self.contentsFilterLabel = QLabel("Search text:")
+        self.contentsFilterEdit = QLineEdit()
+        self.contents_filters_hbox.addWidget(self.contentsFilterLabel)
+        self.contents_filters_hbox.addWidget(self.contentsFilterEdit)
+        self.contents_vbox.addLayout(self.contents_filters_hbox)
         
         self.contentsbrowser = ContentsBrowserWidget(self)
+        self.contents_vbox.addWidget(self.contentsbrowser)
         
         
         self.viewer_hbox.addLayout(self.tables_vbox)
         self.viewer_hbox.addLayout(self.files_vbox)
-        self.viewer_hbox.addWidget(self.contentsbrowser)
+        self.viewer_hbox.addLayout(self.contents_vbox)
         
 #        return self.viewer_hbox
         
@@ -222,6 +235,36 @@ class ContentsBrowserWidget(QTextEdit):
         super(ContentsBrowserWidget, self).__init__()
         self.callingWidget = callingWidget
         self.setReadOnly(True)
+        
+        self.defaultfmt = QTextCharFormat()
+        self.defaultfmt.setBackground(QBrush(QColor("white")))
+        
+        self.highlightfmt = QTextCharFormat()
+        self.highlightfmt.setBackground(QBrush(QColor("red")))
+        
+    def highlightPattern(self, pattern):
+        cursor = self.textCursor()
+        
+        # reset all text highlights
+        cursor.setPosition(0)
+        cursor.movePosition(QTextCursor.End, 1)
+        cursor.setCharFormat(self.defaultfmt)
+        
+        # iterate over patterns
+        if pattern is not "":
+            regex = QRegExp(pattern)
+            
+            pos = 0
+            index = regex.indexIn(self.toPlainText(), pos)
+            while (index != -1):
+                # Select the matched text and apply the desired format
+                cursor.setPosition(index) # go to the index
+    
+                cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, len(pattern)) # select it
+                cursor.setCharFormat(self.highlightfmt) # set the selection format
+                # Move to the next match
+                pos = index + regex.matchedLength()
+                index = regex.indexIn(self.toPlainText(), pos)
         
 class TablesFilterEdit(QLineEdit):
     def __init__(self, callingWidget):
