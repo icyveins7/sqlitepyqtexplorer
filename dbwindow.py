@@ -8,6 +8,7 @@ Created on Mon Mar  2 20:49:31 2020
 import os
 import sqlite3 as sq
 from mypyqtimports import *
+from fileopenwidget import FileOpenWidget
 import time
 
 class DBWindow(QMainWindow):
@@ -68,6 +69,12 @@ class DBWindow(QMainWindow):
         # no autocomplete for text search, but connect to highlighter
         self.contentsFilterEdit.textChanged.connect(self.contentsbrowser.highlightPattern)
         
+        # initialize popup for safety
+        self.exportPopup = None
+        
+    def changeExportDirEditText(self, text):
+        self.exportDirEdit.setText(text)
+        
     def refreshFilesView(self, text):
         print('hit the files slot, text is now ' + text)
         
@@ -93,7 +100,8 @@ class DBWindow(QMainWindow):
         self.callingWidget.dbclosed(self.path2db, self)
         
         # close any popups
-        self.exportPopup.close()
+        if self.exportPopup is not None:
+            self.exportPopup.close()
         
     def loadTables(self):
         self.cur.execute("select name from sqlite_master where type='table'")
@@ -143,8 +151,14 @@ class DBWindow(QMainWindow):
     def createExports(self):
         self.export_hbox = QHBoxLayout()
         
-        self.exportDirEdit = QLineEdit()
+        self.exportDirEdit = QLineEdit('Enter directory to export selected tables to ...')
+        
+        
         self.exportDirBtn = QPushButton("...")
+        self.exportDirOpenwid = FileOpenWidget(self) # pass the window to the dialog
+        
+        self.exportDirBtn.clicked.connect(self.exportDirOpenwid.openDirectoryDialog) # connect the button to the dialog (to open it)
+
         self.exportBtn = QPushButton("Export Selection")
         self.exportBtn.clicked.connect(self.on_exportBtn_clicked)
         

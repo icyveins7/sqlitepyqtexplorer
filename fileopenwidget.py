@@ -5,7 +5,7 @@ Created on Mon Mar  2 01:35:00 2020
 @author: Seo
 """
 
-
+import os
 from mypyqtimports import *
 
 class FileOpenWidget(QWidget):
@@ -39,6 +39,16 @@ class FileOpenWidget(QWidget):
             
         self.callingWidget.changeDbPathEditText(fileName) # from the callingWidget, (should use a more generic name but whatever for now)
     
+    def openDirectoryDialog(self):
+        options = QFileDialog.Options()
+        
+        dialog = QFileDialog()
+        dialog.setFileMode(QFileDialog.DirectoryOnly)
+        dirname = QFileDialog.getExistingDirectory(self,"Open Directory", os.getcwd(), options=options)
+        if dirname:
+            print(dirname)
+        self.callingWidget.changeExportDirEditText(dirname)
+    
     # don't need the rest, but gonna leave it here from the example
     def openFileNamesDialog(self):
         options = QFileDialog.Options()
@@ -46,6 +56,8 @@ class FileOpenWidget(QWidget):
         files, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileNames()", "","All Files (*);;Python Files (*.py)", options=options)
         if files:
             print(files)
+            
+            
     
     def saveFileDialog(self):
         options = QFileDialog.Options()
