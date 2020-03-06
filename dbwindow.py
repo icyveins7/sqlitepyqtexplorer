@@ -8,6 +8,7 @@ Created on Mon Mar  2 20:49:31 2020
 import os
 import sqlite3 as sq
 from mypyqtimports import *
+import time
 
 class DBWindow(QMainWindow):
 
@@ -91,6 +92,9 @@ class DBWindow(QMainWindow):
         print('Closing dbviewer for ' + self.path2db)
         self.callingWidget.dbclosed(self.path2db, self)
         
+        # close any popups
+        self.exportPopup.close()
+        
     def loadTables(self):
         self.cur.execute("select name from sqlite_master where type='table'")
         rows = self.cur.fetchall()
@@ -98,6 +102,43 @@ class DBWindow(QMainWindow):
             QListWidgetItem(row[0], self.tablesList)
             self.tablenames.append(row[0])
         
+    def on_exportBtn_clicked(self):
+        self.exportPopup = QProgressDialog("Exporting files...", "Cancel", 0, 100)
+        self.exportPopup.setAutoClose(True)
+        self.exportPopup.setWindowTitle('Export Progress')
+
+        # shift to centre
+        sG = QApplication.desktop().screenGeometry()
+        self.exportPopup.setFixedWidth(300)
+        self.exportPopup.setFixedHeight(125)
+        print(sG)
+        x = (sG.width()-self.exportPopup.width()) / 2
+        y = (sG.height()-self.exportPopup.height()) / 2
+        self.exportPopup.move(x,y)
+
+        self.exportPopup.show()
+        
+        self.exportPopup.canceled.connect(self.exportPopupEnd)
+        
+        # simulate progress
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.updateExportProgBar)
+        self.tc = 0
+        self.timer.start(100)
+        
+        
+    def exportPopupEnd(self):
+        self.timer.stop()
+        
+        self.exportPopup.close()
+        
+    def updateExportProgBar(self):
+#        print('hit update slot')
+        self.exportPopup.setValue(self.tc)
+        self.tc = self.tc + 1
+        
+        if self.tc > self.exportPopup.maximum():
+            self.timer.stop()
 
     def createExports(self):
         self.export_hbox = QHBoxLayout()
@@ -105,6 +146,7 @@ class DBWindow(QMainWindow):
         self.exportDirEdit = QLineEdit()
         self.exportDirBtn = QPushButton("...")
         self.exportBtn = QPushButton("Export Selection")
+        self.exportBtn.clicked.connect(self.on_exportBtn_clicked)
         
         self.export_hbox.addWidget(self.exportDirEdit)
         self.export_hbox.addWidget(self.exportDirBtn)
