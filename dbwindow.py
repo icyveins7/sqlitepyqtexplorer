@@ -241,10 +241,10 @@ class DBWindow(QMainWindow):
 class TablesListWidget(QListWidget):
     def __init__(self, callingWidget):
         super(TablesListWidget, self).__init__()
-        self.itemClicked.connect(self.listwidgetclicked)
+        self.currentItemChanged.connect(self.listwidgetclicked)
         self.callingWidget = callingWidget
     
-    def listwidgetclicked(self,item):
+    def listwidgetclicked(self,item,olditem):
         print('!!! tableslist click {}'.format(item.text()))
         
         # clear the files list first
@@ -271,20 +271,21 @@ class TablesListWidget(QListWidget):
 class FilesListWidget(QListWidget):
     def __init__(self, callingWidget):
         super(FilesListWidget, self).__init__()
-        self.itemClicked.connect(self.listwidgetclicked)
+        self.currentItemChanged.connect(self.listwidgetclicked)
         self.callingWidget = callingWidget
     
-    def listwidgetclicked(self,item):
-        print('!!! filesList click {}'.format(item.text()))
-        
-        # clear the browser
-        self.callingWidget.contentsbrowser.clear()
-        
-        # query the contents of the file
-        print('current table is ' + self.callingWidget.selectedTable)
-        self.callingWidget.cur.execute("select contents from \"" + self.callingWidget.selectedTable + "\" where filename=?", (item.text(),))
-        sqres = self.callingWidget.cur.fetchone()
-        self.callingWidget.contentsbrowser.setText(sqres[0])
+    def listwidgetclicked(self,item,olditem):
+        if item is not None:
+            print('!!! filesList click {}'.format(item.text()))
+            
+            # clear the browser
+            self.callingWidget.contentsbrowser.clear()
+            
+            # query the contents of the file
+            print('current table is ' + self.callingWidget.selectedTable)
+            self.callingWidget.cur.execute("select contents from \"" + self.callingWidget.selectedTable + "\" where filename=?", (item.text(),))
+            sqres = self.callingWidget.cur.fetchone()
+            self.callingWidget.contentsbrowser.setText(sqres[0])
         
 class ContentsBrowserWidget(QTextEdit):
     def __init__(self, callingWidget):
