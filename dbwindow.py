@@ -133,7 +133,8 @@ class DBWindow(QMainWindow):
             # simulate progress
             self.timer = QTimer()
             self.timer.timeout.connect(self.updateExportProgBar)
-            self.tc = 0
+            self.tc = 0 # pseudo completion
+            self.timer.setInterval(100) # in milliseconds
             self.timer.start(100)
             
         else:
@@ -156,6 +157,8 @@ class DBWindow(QMainWindow):
         
     def updateExportProgBar(self):
 #        print('hit update slot')
+        
+        
         self.exportPopup.setValue(self.tc)
         self.tc = self.tc + 1
         
@@ -238,6 +241,11 @@ class DBWindow(QMainWindow):
         self.contentsFilterEdit = QLineEdit()
         self.contents_filters_hbox.addWidget(self.contentsFilterLabel)
         self.contents_filters_hbox.addWidget(self.contentsFilterEdit)
+        self.contents_colorBtn = QPushButton()
+        self.hlColor = QColor("red")
+        self.contents_colorBtn.setStyleSheet("background-color: %s" % self.hlColor.name())
+        self.contents_colorBtn.clicked.connect(self.pickColors)
+        self.contents_filters_hbox.addWidget(self.contents_colorBtn)
         self.contents_vbox.addLayout(self.contents_filters_hbox)
         
         self.contentsbrowser = ContentsBrowserWidget(self)
@@ -250,7 +258,18 @@ class DBWindow(QMainWindow):
         
 #        return self.viewer_hbox
         
+    def pickColors(self):
+        # set the highlight color
+        self.hlColor = QColorDialog.getColor()
+        print(self.hlColor.name())
+        # use this to invoke the filters widget color change
+        self.contentsbrowser.changeHighlightFmt(self.hlColor)
         
+        # change the highlight color of the box?
+        self.contents_colorBtn.setStyleSheet("background-color: %s" % self.hlColor.name())
+        
+        # reinvoke the highlight in case something is already highlighted
+        self.contentsbrowser.highlightPattern()
         
 class TablesListWidget(QListWidget):
     def __init__(self, callingWidget):
@@ -311,9 +330,18 @@ class ContentsBrowserWidget(QTextEdit):
         self.defaultfmt.setBackground(QBrush(QColor("white")))
         
         self.highlightfmt = QTextCharFormat()
-        self.highlightfmt.setBackground(QBrush(QColor("red")))
+        self.highlightfmt.setBackground(QBrush(self.callingWidget.hlColor))
         
-    def highlightPattern(self, pattern):
+    def changeHighlightFmt(self, color):
+        self.highlightfmt.setBackground(QBrush(color))
+        
+    def highlightPattern(self, pattern=None):
+        # keep a copy for reinvocations
+        if pattern is not None:
+            self.pattern = pattern
+        else: # use the old pattern if re-invocated without new pattern
+            pattern = self.pattern
+        
         cursor = self.textCursor()
         
         # reset all text highlights
