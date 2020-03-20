@@ -111,28 +111,42 @@ class DBWindow(QMainWindow):
             self.tablenames.append(row[0])
         
     def on_exportBtn_clicked(self):
-        self.exportPopup = QProgressDialog("Exporting files...", "Cancel", 0, 100)
-        self.exportPopup.setAutoClose(True)
-        self.exportPopup.setWindowTitle('Export Progress')
-
-        # shift to centre
-        sG = QApplication.desktop().screenGeometry()
-        self.exportPopup.setFixedWidth(300)
-        self.exportPopup.setFixedHeight(125)
-        print(sG)
-        x = (sG.width()-self.exportPopup.width()) / 2
-        y = (sG.height()-self.exportPopup.height()) / 2
-        self.exportPopup.move(x,y)
-
-        self.exportPopup.show()
+        if os.path.exists(self.exportDirEdit.text()):
         
-        self.exportPopup.canceled.connect(self.exportPopupEnd)
-        
-        # simulate progress
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.updateExportProgBar)
-        self.tc = 0
-        self.timer.start(100)
+            self.exportPopup = QProgressDialog("Exporting files...", "Cancel", 0, 100)
+            self.exportPopup.setAutoClose(True)
+            self.exportPopup.setWindowTitle('Export Progress')
+    
+            # shift to centre
+            sG = QApplication.desktop().screenGeometry()
+            self.exportPopup.setFixedWidth(300)
+            self.exportPopup.setFixedHeight(125)
+            print(sG)
+            x = (sG.width()-self.exportPopup.width()) / 2
+            y = (sG.height()-self.exportPopup.height()) / 2
+            self.exportPopup.move(x,y)
+    
+            self.exportPopup.show()
+            
+            self.exportPopup.canceled.connect(self.exportPopupEnd)
+            
+            # simulate progress
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.updateExportProgBar)
+            self.tc = 0
+            self.timer.start(100)
+            
+        else:
+            self.msg = QMessageBox()
+            self.msg.setIcon(QMessageBox.Critical)
+            
+            self.msg.setText("Invalid Directory!")
+            self.msg.setInformativeText("Please check if the directory path is correct and exists!")
+            self.msg.setWindowTitle("Something went wrong.")
+#            msg.setDetailedText("The details are as follows:")
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            
+            self.msg.show()
         
         
     def exportPopupEnd(self):
