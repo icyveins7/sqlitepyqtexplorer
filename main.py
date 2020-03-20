@@ -46,6 +46,9 @@ class MainWindow(QMainWindow):
         # attach layout to central widget
         self.centralWidget.setLayout(self.mainhbox)
         
+        # set focus to lineEdit
+        self.dbpathEdit.selectAll()
+        
         # list of windows open
         self.openWindows = []
         
