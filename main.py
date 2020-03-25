@@ -33,9 +33,11 @@ class MainWindow(QMainWindow):
         
         self.fileopenwid = FileOpenWidget(self) # pass the window to the dialog
         self.dirBtn.clicked.connect(self.fileopenwid.openFileNameDialog) # connect the button to the dialog (to open it)
+        self.dirBtn.setAutoDefault(True)
 
         self.opendbBtn = QPushButton('Open Database')
         self.opendbBtn.clicked.connect(self.on_opendbBtn_clicked)
+        self.opendbBtn.setAutoDefault(True) # make it so enter can be pressed on it
         
         self.mainhbox = QHBoxLayout()
         
