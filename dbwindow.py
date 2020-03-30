@@ -269,7 +269,9 @@ class DBWindow(QMainWindow):
         self.contents_colorBtn.setStyleSheet("background-color: %s" % self.hlColor.name())
         
         # reinvoke the highlight in case something is already highlighted
-        self.contentsbrowser.highlightPattern()
+        if self.contentsFilterEdit.text() is not '':
+            print('pattern is ' + self.contentsFilterEdit.text())
+            self.contentsbrowser.highlightPattern()
         
 class TablesListWidget(QListWidget):
     def __init__(self, callingWidget):
@@ -364,6 +366,16 @@ class ContentsBrowserWidget(QTextEdit):
                 # Move to the next match
                 pos = index + regex.matchedLength()
                 index = regex.indexIn(self.toPlainText(), pos)
+    
+    def focusOutEvent(self, event):
+        QTextEdit.focusOutEvent(self, event) # call the original event
+        print('content browser lost focus')
+        cursor = self.textCursor()
+        
+        # reset the highlight cursor
+        cursor.setPosition(0)
+        self.setTextCursor(cursor)
+        
         
 class TablesFilterEdit(QLineEdit):
     def __init__(self, callingWidget):
