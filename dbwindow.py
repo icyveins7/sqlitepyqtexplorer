@@ -49,6 +49,7 @@ class DBWindow(QMainWindow):
         
         # load the database
         self.con = sq.Connection("file:" + self.path2db + "?mode=ro", uri=True) # read-only
+        self.con.text_factory = lambda b: b.decode(errors='ignore')
         self.cur = self.con.cursor()
         
         # load the tables
